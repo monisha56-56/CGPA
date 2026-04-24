@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite CGPA Pro | Smart Academic Calculator</title>
+    <meta name="description" content="Professional CGPA calculator with custom scales, manual entry, and persistent reviews.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <linkref="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --danger: #80ef44;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #050505b1, #130e0e);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-main);
+            display: flex;
+
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Views */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* Setup Card */
+        .setup-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .setup-card h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(to bottom right, #818cf8, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+            min-width: 200px;
+        }
+
+        .input-box label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        input, select, textarea {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 15px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+
+        /* Calculator View */
+        .calc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .count-badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .subject-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .subject-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 20px;
+            border-radius: 18px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .subject-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--glass-border);
+        }
+
+        /* Results */
+        .results-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 3.5rem;
+            font-weight: 800;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        /* Reviews */
+        .review-section {
+            margin-top: 60px;
+            padding-top: 60px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .review-form {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 24px;
+            margin-bottom: 40px;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .star-rating svg {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: #334155;
+            transition: 0.2s;
+        }
+
+        .star-rating svg.active, .star-rating svg:hover {
+            fill: #fbbf24;
+            filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5));
+        }
+
+        .review-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .review-stars {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 10px;
+        }
+
+        .review-stars svg {
+            width: 14px;
+            height: 14px;
+            fill: #fbbf24;
+        }
+
+        .review-card .user {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .review-card .date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4); }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; }
+        .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
+
+        @media (max-width: 768px) {
+            .subject-row { grid-template-columns: 1fr 1fr; }
+            .subject-row > :first-child { grid-column: span 2; }
+            .results-panel { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- View 1: Setup -->
+    <div id="setupView" class="view active">
+        <div class="setup-card">
+            <h1>Elite CGPA</h1>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Configure your academic session to begin</p>
+            
+            <div class="form-row">
+                <div class="input-box">
+                    <label>Number of Subjects</label>
+                    <input type="number" id="numSubjects" value="5" min="1" max="20">
+                </div>
+                <div class="input-box">
+                    <label>Grading Scale</label>
+                    <select id="gradeScale">
+                        <option value="10">10.0 Scale (Standard)</option>
+                        <option value="4">4.0 Scale (GPA)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="startBtn" class="btn btn-primary" style="margin-top: 40px;">
+                Start Calculating
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- View 2: Calculator -->
+    <div id="calcView" class="view">
+        <div class="calc-header">
+            <div>
+                <h2 style="font-size: 2rem;">Dashboard</h2>
+                <span id="subjectCountDisplay" class="count-badge">5 Subjects Loaded</span>
+            </div>
+            <button id="backBtn" class="btn btn-outline">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Change Config
+            </button>
+        </div>
+
+        <div id="subjectList" class="subject-grid">
+            <!-- Rows injected by JS -->
+        </div>
+
+        <div class="results-panel">
+            <div class="stat-card">
+                <span class="stat-label">Current CGPA</span>
+                <span id="cgpaVal" class="stat-val" style="color: var(--accent);">0.00</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Total Credits</span>
+                <span id="totalCreditsVal" class="stat-val" style="color: var(--primary);">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Section (Permanent) -->
+    <div class="review-section">
+        <h2 style="margin-bottom: 30px; font-size: 1.8rem;">User Reviews</h2>
+        
+        <div class="review-form">
+            <h3 style="margin-bottom: 20px;">Submit Your Feedback</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="star-rating" id="ratingInput">
+                    <svg viewBox="0 0 20 20" data-val="1"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20" data-val="2"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20" data-val="3"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20" data-val="4"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20" data-val="5"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <input type="text" id="reviewerName" placeholder="Your Name">
+                <textarea id="reviewText" placeholder="How was your experience?" rows="3"></textarea>
+                <button id="submitReview" class="btn btn-primary" style="width: fit-content;">Post Review</button>
+            </div>
+        </div>
+
+        <div id="reviewList" class="review-list">
+            <!-- Reviews from localStorage -->
+        </div>
+    </div>
+</div>
+
+<!-- Datalists for Suggestions -->
+<datalist id="creditOptions">
+    <option value="1">1 Credit</option>
+    <option value="2">2 Credits</option>
+    <option value="3">3 Credits</option>
+    <option value="4">4 Credits</option>
+    <option value="5">5 Credits</option>
+</datalist>
+
+<datalist id="gradePoints10">
+    <option value="10">O (Outstanding)</option>
+    <option value="9">A+ (Excellent)</option>
+    <option value="8">A (Very Good)</option>
+    <option value="7">B+ (Good)</option>
+    <option value="6">B (Average)</option>
+</datalist>
+
+<datalist id="gradePoints4">
+    <option value="4.0">A (4.0)</option>
+    <option value="3.7">A- (3.7)</option>
+    <option value="3.3">B+ (3.3)</option>
+    <option value="3.0">B (3.0)</option>
+    <option value="2.7">B- (2.7)</option>
+</datalist>
+
+<script>
+    // State
+    let currentScale = 10;
+    const views = {
+        setup: document.getElementById('setupView'),
+        calc: document.getElementById('calcView')
+    };
+
+    // Elements
+    const startBtn = document.getElementById('startBtn');
+    const backBtn = document.getElementById('backBtn');
+    const numSubjInput = document.getElementById('numSubjects');
+    const scaleSelect = document.getElementById('gradeScale');
+    const subjectList = document.getElementById('subjectList');
+    const subjectCountDisplay = document.getElementById('subjectCountDisplay');
+    const cgpaValDisplay = document.getElementById('cgpaVal');
+    const totalCreditsDisplay = document.getElementById('totalCreditsVal');
+
+    // Review System
+    const reviewerName = document.getElementById('reviewerName');
+    const reviewText = document.getElementById('reviewText');
+    const submitReviewBtn = document.getElementById('submitReview');
+    const reviewList = document.getElementById('reviewList');
+
+    function switchView(viewName) {
+        Object.values(views).forEach(v => v.classList.remove('active'));
+        views[viewName].classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function generateRows(count) {
+        subjectList.innerHTML = '';
+        currentScale = parseInt(scaleSelect.value);
+        const datalistId = currentScale === 10 ? 'gradePoints10' : 'gradePoints4';
+        
+        for (let i = 1; i <= count; i++) {
+            const row = document.createElement('div');
+            row.className = 'subject-row';
+            row.innerHTML = `
+                <div class="input-box">
+                    <label>Subject ${i}</label>
+                    <input type="text" placeholder="Course Name" class="subj-name">
+                </div>
+                <div class="input-box">
+                    <label>Credits</label>
+                    <input type="number" list="creditOptions" placeholder="0" class="subj-credits">
+                </div>
+                <div class="input-box">
+                    <label>Grade Point</label>
+                    <input type="number" list="${datalistId}" step="0.1" placeholder="0.0" class="subj-grade">
+                </div>
+                <button class="btn-outline" style="padding: 10px; margin-top: 25px; border-radius: 12px;" onclick="this.parentElement.remove(); calculate();">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            `;
+            
+            row.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('input', calculate);
+            });
+            subjectList.appendChild(row);
+        }
+        subjectCountDisplay.textContent = `${count} Subjects Loaded`;
+        calculate();
+    }
+
+    function calculate() {
+        const rows = document.querySelectorAll('.subject-row');
+        let totalW = 0;
+        let totalC = 0;
+
+        rows.forEach(row => {
+            const c = parseFloat(row.querySelector('.subj-credits').value);
+            const g = parseFloat(row.querySelector('.subj-grade').value);
+            
+            if (!isNaN(c) && !isNaN(g) && c > 0) {
+                totalW += c * g;
+                totalC += c;
+            }
+        });
+
+        if (totalC > 0) {
+            const cgpa = totalW / totalC;
+            cgpaValDisplay.textContent = cgpa.toFixed(2);
+            totalCreditsDisplay.textContent = totalC;
+        } else {
+            cgpaValDisplay.textContent = "0.00";
+            totalCreditsDisplay.textContent = "0";
+        }
+    }
+
+    // Review Logic
+    let selectedRating = 5;
+    const ratingInput = document.getElementById('ratingInput');
+    const stars = ratingInput.querySelectorAll('svg');
+
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            selectedRating = parseInt(star.getAttribute('data-val'));
+            updateStars(selectedRating);
+        });
+        star.addEventListener('mouseover', () => {
+            updateStars(parseInt(star.getAttribute('data-val')));
+        });
+        star.addEventListener('mouseout', () => {
+            updateStars(selectedRating);
+        });
+    });
+
+    function updateStars(val) {
+        stars.forEach(s => {
+            s.classList.toggle('active', parseInt(s.getAttribute('data-val')) <= val);
+        });
+    }
+    updateStars(5);
+
+    function loadReviews() {
+        const reviews = JSON.parse(localStorage.getItem('cgpa_reviews') || '[]');
+        reviewList.innerHTML = '';
+        reviews.reverse().forEach(rev => {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+            
+            let starsHtml = '';
+            for(let i=0; i<5; i++) {
+                starsHtml += `<svg viewBox="0 0 20 20" style="fill: ${i < rev.rating ? '#fbbf24' : '#334155'}"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`;
+            }
+
+            card.innerHTML = `
+                <div class="review-stars">${starsHtml}</div>
+                <span class="user">${rev.name}</span>
+                <p style="margin: 10px 0;">${rev.text}</p>
+                <span class="date">${new Date(rev.date).toLocaleDateString()}</span>
+            `;
+            reviewList.appendChild(card);
+        });
+    }
+
+    submitReviewBtn.addEventListener('click', () => {
+        const name = reviewerName.value.trim();
+        const text = reviewText.value.trim();
+        
+        if (!name || !text) {
+            alert('Please fill in both name and feedback!');
+            return;
+        }
+
+        const reviews = JSON.parse(localStorage.getItem('cgpa_reviews') || '[]');
+        reviews.push({ name, text, rating: selectedRating, date: new Date().toISOString() });
+        localStorage.setItem('cgpa_reviews', JSON.stringify(reviews));
+        
+        reviewerName.value = '';
+        reviewText.value = '';
+        selectedRating = 5;
+        updateStars(5);
+        loadReviews();
+    });
+
+    // Events
+    startBtn.addEventListener('click', () => {
+        const count = parseInt(numSubjInput.value);
+        if (count < 1) return alert('Enter at least 1 subject');
+        generateRows(count);
+        switchView('calc');
+    });
+
+    backBtn.addEventListener('click', () => switchView('setup'));
+
+    // Init
+    loadReviews();
+</script>
+
+</body>
+</html>
